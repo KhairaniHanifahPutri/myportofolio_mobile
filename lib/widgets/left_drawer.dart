@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:myportofolio_mobile/screens/experience_form.dart';
 import 'package:myportofolio_mobile/screens/menu.dart';
+import 'package:myportfolio_mobile/services/auth_state.dart';
+import 'package:myportfolio_mobile/widgets/auth_guard.dart';
 import 'package:myportofolio_mobile/screens/project_form.dart';
 
 // TODO: Impor halaman ProjectFormPage jika sudah dibuat
@@ -10,6 +12,7 @@ class LeftDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isLoggedIn = context.watch<AuthState>().isLoggedIn;
     return Drawer(
       child: ListView(
         children: [
@@ -51,14 +54,41 @@ class LeftDrawer extends StatelessWidget {
             title: const Text('Add Project'),
             // Navigasi ke halaman tambah proyek
             onTap: () {
-              /*
-              TODO: Buatlah routing ke halaman ProjectFormPage yang akan dibuat nanti.
-              */
+              final navigator = Navigator.of(context);
+              final ok = await ensureLoggedIn(context);
+              if (!ok || !context.mounted) return;
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
                   builder: (context) => const ProjectFormPage(),
                 ),
+              );
+            },
+          ),
+          if (!isLoggedIn)
+          ListTile(
+            leading: const Icon(Icons.login),
+            title: const Text('Login'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+              );
+            },
+          )
+        else
+          ListTile(
+            leading: const Icon(Icons.logout),
+            title: const Text('Logout'),
+            onTap: () async {
+              final messenger = ScaffoldMessenger.of(context);
+              try {
+                await context.read<AuthState>().logout();
+              } catch (_) {
+                // token lokal tetap terhapus oleh finally di AuthState
+              }
+              messenger.showSnackBar(
+                const SnackBar(content: Text('You have been logged out.')),
               );
             },
           ),

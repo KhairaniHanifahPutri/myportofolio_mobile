@@ -26,14 +26,32 @@ class ItemCard extends StatelessWidget {
                 content: Text("Kamu telah menekan tombol ${item.name}!"),
               ),
             );
+          
+          final navigator = Navigator.of(context);
 
           // Navigate ke halaman yang sesuai
           if (item.name == "Tambah Proyek") {
             // TODO: Gunakan Navigator.push() untuk melakukan navigasi ke MaterialPageRoute yang mencakup ProjectFormPage
+            final ok = await ensureLoggedIn(context);
+            if (!ok || !context.mounted) return;
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const ProjectFormPage()),
             );
+          } else if (item.name == 'Logout') {
+              final auth = context.read<AuthState>();
+              if (!auth.isLoggedIn) {
+                messenger.showSnackBar(
+                  const SnackBar(content: Text('You are not logged in.')),
+                );
+                return;
+              }
+              try {
+                await auth.logout();
+              } catch (_) {}
+              messenger.showSnackBar(
+                const SnackBar(content: Text('You have been logged out.')),
+              );
           }
 
           if (item.name == "Tambah Pengalaman") {
